@@ -16,7 +16,7 @@ describe('render()', () => {
       .on('error', done);
   });
 
-  it('changes the extension of the file to .html', () => {
+  it.only('changes the extension of the file to .html', () => {
     expect(path.extname(file.path)).to.equal('.html');
   });
 

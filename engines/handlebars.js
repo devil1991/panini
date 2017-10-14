@@ -5,6 +5,14 @@ const handlebarsHelpers = require('handlebars-helpers');
 const PaniniEngine = require('../lib/engine');
 const folders = require('../lib/folders');
 
+const globPattern = '/**/*.{html,hbs,handlebars}';
+const getPartialName = (inputFolder, filePath) => {
+  return path.relative(
+    path.join(process.cwd(), inputFolder, folders.partials),
+    filePath
+  ).replace(/\..*$/, '');
+};
+
 /**
  * Panini engine to render Handlebars templates.
  */
@@ -27,47 +35,6 @@ class HandlebarsEngine extends PaniniEngine {
         handlebars: this.engine
       });
     }
-  }
-
-  /**
-   * Load layouts, partials, helpers, and data.
-   * @returns {Promise} Promise which resolves when setup is done.
-   */
-  setup() {
-    const mapFiles = PaniniEngine.mapFiles;
-    const mapPaths = PaniniEngine.mapPaths;
-    const extensions = '**/*.{html,hbs,handlebars}';
-    this.layouts = {};
-
-    return Promise.all([
-      super.setup(),
-      mapFiles(this.options.input, folders.layouts, extensions, (filePath, contents) => {
-        const name = path.basename(filePath, path.extname(filePath));
-        this.layouts[name] = contents;
-      }),
-      mapFiles(this.options.input, folders.partials, '**/*.*', (filePath, contents) => {
-        const name = path.relative(
-          path.join(process.cwd(), this.options.input, folders.partials),
-          filePath
-        ).replace(/\..*$/, '');
-        this.engine.registerPartial(name, contents + '\n');
-      }),
-      mapPaths(this.options.input, folders.helpers, '**/*.js', filePath => {
-        const name = path.basename(filePath, '.js');
-
-        try {
-          if (this.engine.helpers[name]) {
-            delete require.cache[require.resolve(filePath)];
-            this.engine.unregisterHelper(name);
-          }
-
-          const helper = require(filePath);
-          this.engine.registerHelper(name, helper);
-        } catch (err) {
-          console.warn('Error when loading ' + name + '.js as a Handlebars helper.');
-        }
-      })
-    ]);
   }
 
   /**
@@ -99,7 +66,49 @@ class HandlebarsEngine extends PaniniEngine {
   }
 }
 
-HandlebarsEngine.features = ['layouts', 'partials', 'helpers'];
+HandlebarsEngine.watchers = [
+  {
+    pattern: folders.layouts + globPattern,
+    read: true,
+    update(name, filePath, contents) {
+      this.layouts[name] = contents;
+    },
+    remove(name) {
+      delete this.layouts[name];
+    }
+  },
+  {
+    pattern: folders.partials + globPattern,
+    read: true,
+    update(name, filePath, contents) {
+      const partialName = getPartialName(this.options.input, filePath);
+      this.engine.registerPartial(partialName, contents);
+    },
+    remove(name, filePath) {
+      const partialName = getPartialName(this.options.input, filePath);
+      this.engine.unregisterPartial(partialName);
+    }
+  },
+  {
+    pattern: `${folders.helpers}/**/*.js`,
+    update(name, filePath) {
+      try {
+        if (this.engine.helpers[name]) {
+          delete require.cache[require.resolve(filePath)];
+          this.engine.unregisterHelper(name);
+        }
+
+        const helper = require(filePath);
+        this.engine.registerHelper(name, helper);
+      } catch (err) {
+        console.warn('Error when loading ' + name + '.js as a Handlebars helper.');
+      }
+    },
+    remove(name) {
+      this.engine.unregisterHelper(name);
+    }
+  }
+];
 
 HandlebarsEngine.requires = 'handlebars';
 

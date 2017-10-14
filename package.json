@@ -4,7 +4,7 @@
   "description": "A super tiny flat file compiler.",
   "main": "index.js",
   "scripts": {
-    "test": "xo && mocha"
+    "test": "mocha"
   },
   "author": "ZURB <foundation@zurb.com> (http://zurb.com)",
   "license": "MIT",
