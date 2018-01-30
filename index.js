@@ -51,6 +51,6 @@ module.exports.refresh = function() {}
 module.exports.help = function() {
   help();
 }
-module.exports.getInstance () = function () {
+module.exports.getInstance = function () {
   return panini
 }
