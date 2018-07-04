@@ -1,6 +1,6 @@
 var panini;
 var help = require('./lib/helpMessage');
-
+var initialData = {}
 /**
  * Initializes an instance of Panini.
  * @constructor
@@ -10,7 +10,9 @@ function Panini(options) {
   this.options = options;
   this.Handlebars = require('handlebars');
   this.layouts = {};
-  this.data = {};
+  this.data = {
+    ...initialData
+  };
 
   if (!options.layouts) {
     throw new Error('Panini error: you must specify a directory for layouts.');
@@ -47,6 +49,9 @@ module.exports = function(options) {
 }
 
 module.exports.Panini = Panini;
+module.exports.setDefaultData = function (newData = {}) {
+  initialData = newData
+};
 module.exports.refresh = function() {}
 module.exports.help = function() {
   help();
