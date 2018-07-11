@@ -10,9 +10,7 @@ function Panini(options) {
   this.options = options;
   this.Handlebars = require('handlebars');
   this.layouts = {};
-  this.data = {
-    ...initialData
-  };
+  this.data = Object.assign({}, initialData)
 
   if (!options.layouts) {
     throw new Error('Panini error: you must specify a directory for layouts.');
