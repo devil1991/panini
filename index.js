@@ -10,6 +10,7 @@ function Panini(options) {
   this.options = options;
   this.Handlebars = require('handlebars');
   this.layouts = {};
+  this.initialData = Object.assign({}, initialData)
   this.data = Object.assign({}, initialData)
 
   if (!options.layouts) {
