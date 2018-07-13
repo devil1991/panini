@@ -50,6 +50,9 @@ module.exports.Panini = Panini;
 module.exports.setDefaultData = function (newData = {}) {
   initialData = newData
 };
+module.exports.reset = function() {
+  panini = null
+}
 module.exports.refresh = function() {}
 module.exports.help = function() {
   help();
